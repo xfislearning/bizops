@@ -1,0 +1,64 @@
+# Qentro BizOps — publish the ready-built upload files to GitHub Pages (no build step).
+# Settings → Pages → Source must be "GitHub Actions".
+# Repo Variables (Settings → Secrets and variables → Actions → Variables), each optional:
+#   VITE_GOOGLE_CLIENT_ID, VITE_ALLOWED_EMAILS (comma-separated), VITE_SIGNIN_LOG_URL, VITE_SIGNIN_LOG_TOKEN
+# A non-empty variable overrides the same field in the committed config.js.
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Assemble site (exclude docs, scripts, workflow)
+        run: |
+          mkdir -p _site
+          rsync -a --exclude '.git' --exclude '.github' --exclude '_site' \
+            --exclude '*.md' --exclude '*.gs' --exclude 'UPLOAD-INSTRUCTIONS*' --exclude 'GOOGLE-VERIFICATION*' --exclude '*.pdf' ./ _site/
+
+      - name: Write config.js from repo Variables
+        # Values are passed only through env and serialised by JSON.stringify — never interpolated into the shell.
+        env:
+          VITE_GOOGLE_CLIENT_ID: ${{ vars.VITE_GOOGLE_CLIENT_ID }}
+          VITE_ALLOWED_EMAILS: ${{ vars.VITE_ALLOWED_EMAILS }}
+          VITE_SIGNIN_LOG_URL: ${{ vars.VITE_SIGNIN_LOG_URL }}
+          VITE_SIGNIN_LOG_TOKEN: ${{ vars.VITE_SIGNIN_LOG_TOKEN || secrets.VITE_SIGNIN_LOG_TOKEN }}
+        run: node .github/write-config.mjs _site/config.js
+
+      - name: Check site files
+        run: |
+          for f in index.html config.js CNAME privacy.html terms.html manifest.json sw.js; do
+            test -f "_site/$f" || { echo "::error::$f missing — upload every file from the zip"; exit 1; }
+          done
+          node -e "const vm=require('vm');const s={window:{}};vm.runInNewContext(require('fs').readFileSync('_site/config.js','utf8'),s);if(!s.window.QENTRO_CONFIG)process.exit(1)"
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
