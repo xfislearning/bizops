@@ -1,41 +1,103 @@
-QENTRO RELATIONSHIPS — UPLOAD TO GITHUB PAGES (no build step)
+QENTRO BIZOPS (Business Operations System) — UPLOAD TO GITHUB PAGES (no build step)
 =============================================================
 
 What's in this zip
   index.html              the whole app in one file
   config.js               where you paste your Google OAuth client ID
-  CNAME                   relationships.qentrotech.com (your custom domain)
+  .github/workflows/deploy.yml   publishes the site and fills config.js from repo Variables (hidden folder; keep it)
+  CNAME                   bizops.qentrotech.com (your custom domain)
   .nojekyll               tells GitHub Pages to serve files as-is (hidden file; keep it)
-  favicon.ico, apple-touch-icon.png   browser icons
+  favicon.ico, apple-touch-icon.png, icons/   browser + home-screen icons (keep the icons folder)
+  privacy.html, terms.html   Privacy Policy + Terms of Use (needed for the Google OAuth consent screen)
+  GOOGLE-VERIFICATION.md/.txt, qentro-bizops-logo-120.png   steps + logo for publishing/verifying the OAuth app (optional to upload)
+  manifest.json, sw.js    "Add to Home Screen" app + offline support (only used on the website)
   UPLOAD-INSTRUCTIONS.txt this file (optional to upload)
+  Qentro-BizOps-Setup-Guide.pdf   illustrated step-by-step setup guide (not published)
 
-1. Switch GitHub Pages to "deploy from a branch"
-   Repo → Settings → Pages → Build and deployment → Source: "Deploy from a branch"
-   Branch: main   Folder: / (root)   → Save.
-   (If Source was "GitHub Actions", the old build workflow is no longer used.)
+1. Keep GitHub Pages on "GitHub Actions"
+   Repo → Settings → Pages → Build and deployment → Source: "GitHub Actions".
+   This zip includes its own workflow (.github/workflows/deploy.yml). It does NOT build anything:
+   it copies these files, writes config.js from your repo Variables, and publishes the site.
+   Docs (*.md, *.gs, UPLOAD-INSTRUCTIONS, GOOGLE-VERIFICATION) and .github are not published.
 
 2. Remove the old files from the repo
-   Delete everything that was there before, including the .github folder (its workflow file,
-   e.g. .github/workflows/deploy.yml), src/, package.json, old index.html, assets/, sw.js, etc.
+   Delete everything that was there before: src/, package.json, old index.html, assets/, sw.js, and the
+   old .github folder (the new zip brings its own .github/workflows/deploy.yml that replaces it).
    Easiest: on github.com open each folder → "…" → Delete directory, or clone the repo, delete all
    files except the .git folder, then commit.
 
-3. Upload the new files
-   Unzip this file. On github.com: Add file → Upload files → drag ALL files from the unzipped
-   folder (including the hidden .nojekyll; on a Mac press Cmd+Shift+. in Finder to see it) →
+3. Upload the new files, including the hidden .github folder
+   Unzip this file. On a Mac, press Cmd+Shift+. in Finder to show hidden files (.github, .nojekyll).
+   On github.com: Add file → Upload files → drag ALL files AND folders from the unzipped folder
+   (dragging folders keeps their paths, so .github/workflows/deploy.yml lands in the right place) →
    Commit changes. index.html must be at the top level of the repo, not inside a folder.
+   Check afterwards that the repo shows .github/workflows/deploy.yml; if not, Add file → Create new file,
+   type the name .github/workflows/deploy.yml and paste its contents.
 
-4. Paste your Google client ID
-   On github.com open config.js → pencil (Edit) → put your client ID between the quotes:
-       googleClientId: '1234567890-abc123.apps.googleusercontent.com',
-   → Commit changes. No rebuild is needed; reload the site after about a minute.
+4. Repo Variables (Settings → Secrets and variables → Actions → Variables tab)
+   VITE_GOOGLE_CLIENT_ID   keep your existing variable (1234567890-abc123.apps.googleusercontent.com)
+   VITE_ALLOWED_EMAILS     add: the account(s) allowed to sign in, comma-separated, e.g. you@gmail.com
+   VITE_SIGNIN_LOG_URL     optional: Apps Script /exec URL (see SIGNIN-LOG-SETUP.md)
+   VITE_SIGNIN_LOG_TOKEN   optional: the same TOKEN as in signin-log.gs
+   Each push to main (or Actions → "Deploy to GitHub Pages" → Run workflow) publishes the site in about a minute.
+   A variable that is set wins; an empty or missing one keeps the value in the committed config.js.
+   An invalid client ID or log URL stops the deploy with a clear error under the Actions tab.
+   (No Actions? You can instead edit config.js directly on github.com and use "Deploy from a branch".)
    In Google Cloud Console → Credentials → your OAuth client, "Authorized JavaScript origins"
-   must include  https://relationships.qentrotech.com
+   must include  https://bizops.qentrotech.com
+   For the iPhone home-screen app, also add under "Authorized redirect URIs":
+       https://bizops.qentrotech.com/
+   (iOS opens Google sign-in as a full page there instead of a pop-up, then comes back to the app.)
 
-5. Check the custom domain
-   Settings → Pages should show relationships.qentrotech.com and "Enforce HTTPS" ticked.
+5. DNS at Namecheap (once)
+   Domain List → qentrotech.com → Manage → Advanced DNS → Add new record:
+       Type: CNAME Record   Host: bizops   Value: xfislearning.github.io   TTL: Automatic
+   (You can delete the old "relationships" CNAME record once you no longer use that address.)
+
+6. Check the custom domain
+   Settings → Pages should show bizops.qentrotech.com and "Enforce HTTPS" ticked.
 
 Open it locally (no internet or sign-in needed)
    Double-click index.html. It runs in local mode: data is saved in that browser only and
    Google sign-in is off (Google doesn't allow sign-in from a file). Use Settings → Export to back up.
    Data saved on the website and data saved in the local file are separate.
+
+Use it on iPhone
+   Open https://bizops.qentrotech.com in Safari → Share → Add to Home Screen → Add.
+   Open it from the home-screen icon: it runs full-screen, opens offline, and syncs when you come back
+   to it (or pull down at the top of a page). After iOS closes the app you may see "Tap to reconnect" —
+   one tap signs you back in; anything you changed meanwhile stays on the phone and uploads then.
+   Live transcription needs the app on screen; for long meetings you can also dictate with the
+   keyboard's microphone key (event → Live notes → "Dictate with the keyboard instead").
+
+Google OAuth consent screen (Google Cloud Console → Google Auth Platform → Branding)
+   App name:                   Qentro BizOps
+   User support email:         your email
+   App home page:              https://bizops.qentrotech.com
+   Privacy policy link:        https://bizops.qentrotech.com/privacy.html
+   Terms of service link:      https://bizops.qentrotech.com/terms.html
+   Authorized domain:          qentrotech.com
+   Authorized JavaScript origin: https://bizops.qentrotech.com
+   Authorized redirect URI:      https://bizops.qentrotech.com/
+   Developer contact email:    your email
+   Scopes (Data access):       openid, email, profile,
+                               .../auth/drive.file, .../auth/calendar.events
+   Both pages list contact@qentrotech.com as the contact address.
+   Note: the privacy policy and terms are a practical starting point written for this app, not legal
+   advice. Have them reviewed by a lawyer if you rely on them, especially for recording-consent rules.
+
+Moving from relationships.qentrotech.com to bizops.qentrotech.com
+   Use the SAME Google OAuth client ID (just add the new origin + redirect URI). The app keeps using
+   your existing Drive folder — the app renames "Qentro Relationships" to "Qentro BizOps" in place (same folder,
+   same files and links) — so after you sign in on the new address everything
+   syncs down. Each web address has its own browser storage: sync any unsynced changes on the old
+   address first (sync pill shows "Synced"), then sign in on the new one. Re-add the iPhone home-screen icon from the new address.
+
+OWNER-ONLY ACCESS + SIGN-IN LOG (v10)
+- In config.js, set allowedEmails: ['you@gmail.com']. Any other Google account is signed out right away
+  and its token is revoked. This check runs in the browser. The real lock is keeping the OAuth app in
+  "Testing" with only your test users.
+- Optional sign-in log: follow SIGNIN-LOG-SETUP.md (deploy signin-log.gs as a web app:
+  Execute as Me, access Anyone), then set signInLogUrl and signInLogToken in config.js.
+- Preferred alternative: deploy from the source zip with GitHub Actions and set the repo Variables
+  VITE_GOOGLE_CLIENT_ID, VITE_ALLOWED_EMAILS, VITE_SIGNIN_LOG_URL, VITE_SIGNIN_LOG_TOKEN.

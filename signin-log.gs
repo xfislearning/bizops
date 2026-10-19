@@ -44,6 +44,8 @@ function sheet_() {
   var id = props.getProperty('SHEET_ID');
   var ss = null;
   if (id) { try { ss = SpreadsheetApp.openById(id); } catch (e) { ss = null; } }
+  if (!ss) { try { ss = SpreadsheetApp.getActiveSpreadsheet(); } catch (e) { ss = null; } } // script opened from the Sheet (Extensions → Apps Script)
+  if (ss && !id) props.setProperty('SHEET_ID', ss.getId());
   if (!ss) {
     var files = DriveApp.getFilesByName(SHEET_NAME);
     ss = files.hasNext() ? SpreadsheetApp.open(files.next()) : SpreadsheetApp.create(SHEET_NAME);

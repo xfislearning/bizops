@@ -16,11 +16,12 @@
 ## Sign-in log (Google Sheet in your Drive)
 Other people's browsers can't write to your Drive, so the log goes through a small Apps Script that runs as you.
 
-1. Go to https://script.google.com → **New project**. Name it "Qentro BizOps Sign-in Log".
-2. Delete the sample code and paste the contents of **`signin-log.gs`**.
-3. Change `TOKEN` at the top to a long random string, for example 32+ letters and digits.
-4. Choose the function **`setup`** and click **Run**. Approve the permissions (it's your own script).
-   This creates the Sheet **"Qentro BizOps Sign-in Log"** in your Drive.
+1. In Google Drive, click **New → Google Sheets**. Name the sheet **Qentro BizOps Sign-in Log**.
+2. In the Sheet, open **Extensions → Apps Script**. Delete the sample code and paste the contents of **`signin-log.gs`**. Click 💾 Save.
+3. Change `TOKEN` at the top to a long random string, for example 32+ letters and digits. Save.
+4. Choose the function **`setup`** and click **Run**. Google asks you to authorize: pick your account, then
+   *"Google hasn't verified this app"* → **Advanced** → **Go to … (unsafe)** → **Allow**. This warning is normal: it's
+   your own script. `setup` adds the header row to the Sheet.
 5. Click **Deploy → New deployment → ⚙ Select type → Web app**:
    - Description: `sign-in log`
    - Execute as: **Me**
