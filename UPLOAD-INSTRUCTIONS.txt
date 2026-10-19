@@ -1,0 +1,41 @@
+QENTRO RELATIONSHIPS — UPLOAD TO GITHUB PAGES (no build step)
+=============================================================
+
+What's in this zip
+  index.html              the whole app in one file
+  config.js               where you paste your Google OAuth client ID
+  CNAME                   relationships.qentrotech.com (your custom domain)
+  .nojekyll               tells GitHub Pages to serve files as-is (hidden file; keep it)
+  favicon.ico, apple-touch-icon.png   browser icons
+  UPLOAD-INSTRUCTIONS.txt this file (optional to upload)
+
+1. Switch GitHub Pages to "deploy from a branch"
+   Repo → Settings → Pages → Build and deployment → Source: "Deploy from a branch"
+   Branch: main   Folder: / (root)   → Save.
+   (If Source was "GitHub Actions", the old build workflow is no longer used.)
+
+2. Remove the old files from the repo
+   Delete everything that was there before, including the .github folder (its workflow file,
+   e.g. .github/workflows/deploy.yml), src/, package.json, old index.html, assets/, sw.js, etc.
+   Easiest: on github.com open each folder → "…" → Delete directory, or clone the repo, delete all
+   files except the .git folder, then commit.
+
+3. Upload the new files
+   Unzip this file. On github.com: Add file → Upload files → drag ALL files from the unzipped
+   folder (including the hidden .nojekyll; on a Mac press Cmd+Shift+. in Finder to see it) →
+   Commit changes. index.html must be at the top level of the repo, not inside a folder.
+
+4. Paste your Google client ID
+   On github.com open config.js → pencil (Edit) → put your client ID between the quotes:
+       googleClientId: '1234567890-abc123.apps.googleusercontent.com',
+   → Commit changes. No rebuild is needed; reload the site after about a minute.
+   In Google Cloud Console → Credentials → your OAuth client, "Authorized JavaScript origins"
+   must include  https://relationships.qentrotech.com
+
+5. Check the custom domain
+   Settings → Pages should show relationships.qentrotech.com and "Enforce HTTPS" ticked.
+
+Open it locally (no internet or sign-in needed)
+   Double-click index.html. It runs in local mode: data is saved in that browser only and
+   Google sign-in is off (Google doesn't allow sign-in from a file). Use Settings → Export to back up.
+   Data saved on the website and data saved in the local file are separate.
